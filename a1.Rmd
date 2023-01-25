@@ -1,0 +1,56 @@
+---
+title: "Assignment 1"
+author: "Hannah Irish"
+date: "2023-01-25"
+output: 
+  html_document:
+    code_folding: TRUE
+  
+---
+
+```{r setup, include=FALSE, echo=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(janitor)
+library(cowplot)
+library(readxl)
+library(lubridate)
+```
+
+```{r}
+sierra_amphibians <- read_excel("sierra_amphibians.xlsx")
+```
+
+```{r}
+##change years to years using lubridate
+
+sierra_amphibians_mod <- sierra_amphibians %>%
+  mutate("date" = ymd(survey_date))
+
+sierra_amphibians_year <- sierra_amphibians_mod %>%
+  mutate("data_year" = year(date))
+
+sier_amph_no_nas <- sierra_amphibians_year %>%
+  drop_na()
+  
+yellow_frogs <- sier_amph_no_nas %>%
+ filter(amphibian_species=="RAMU", amphibian_life_stage != "EggMass") %>%
+  group_by(data_year) %>%
+  summarize(total_frogs = sum(amphibian_number))
+
+
+```
+
+
+```{r}
+#ggplot(yellow_frogs, aes(x=data_year, y=total_frogs)) +
+  #theme_bw()
+
+ggplot(data = yellow_frogs, aes(x = data_year, y = total_frogs)) + 
+  geom_jitter(width = 0.1, 
+              alpha = 0.8,
+              size = 2) +
+  theme_minimal() 
+```
+
