@@ -7,7 +7,7 @@ output: html_document
   
 ---
 
-```{r setup, include=FALSE, echo=TRUE, warning=FALSE, message=FALSE}
+```{r setup, include=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(here)
@@ -101,4 +101,4 @@ plot_grid(yfrog_plot, top_plot, labels="AUTO")
 
 Data Source:
 
-Knapp, R, et. al. (2020, December 11). *The Sierra Lakes Inventory Project: Non-Native fish and community composition of lakes and ponds in the Sierra Nevada, California.* EDI Data Portal. doi:10.6073/pasta/d835832d7fd00d9e4466e44eea87fab3
+Knapp, R.A., C. Pavelka, E.E. Hegeman, and T.C. Smith. 2020. The Sierra Lakes Inventory Project: Non-Native fish and community composition of lakes and ponds in the Sierra Nevada, California ver 2. Environmental Data Initiative. https://doi.org/10.6073/pasta/d835832d7fd00d9e4466e44eea87fab3
