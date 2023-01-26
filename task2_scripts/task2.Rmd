@@ -1,0 +1,62 @@
+---
+title: "Task 2"
+author: "Hannah Irish"
+date: "2023-01-26"
+output: html_document
+---
+
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(janitor)
+library(AICcmodavg)
+```
+
+
+# **Task 2: California Coast Oxygen Saturation**
+
+The data in this project is from the California Cooperative Oceanic Fisheries Investigations (CalCOFI) 70+ year time series measuring water quality factors off the coast of California including salinity, temperature, oxygen, phosphate and later silicate, nitritie, chlorophyll, etc.
+
+
+### Read in the data using read_csv()
+```{r, warning=FALSE, message=FALSE}
+sea_samples <- read_csv(here("data_task2", "calcofi_seawater_samples.csv"))
+```
+
+### Create models for multiple linear regression
+```{r}
+model_1 <- lm(o2sat ~ t_deg_c + salinity + po4u_m, data=sea_samples)
+model_2 <- lm(o2sat ~ t_deg_c + salinity + po4u_m + depth_m, data=sea_samples)
+```
+
+### Calculate AIC and BIC for models
+```{r, output=FALSE}
+AIC_1 <- AICc(model_1)
+AIC_2 <- AICc(model_2)
+
+BIC_1 <- BIC(model_1)
+BIC_2 <- BIC(model_2)
+
+```
+
+
+### Peform ten-fold cross validaation of the two models using root-mean-square error as the scoring method.
+
+```{r}
+folds <- 10 ##set # of folds (#-fold validation)
+folds_vector <- rep(1:folds, length_out = nrow(sea_samples)) ##make a vector of 1 to the # of rows you have
+
+set.seed(33) ##to make sure I get the same results each time for debugging
+
+sea_fold <- sea_samples %>%
+  mutate(group = sample(folds_vector, size = n(), replace = FALSE))
+```
+
+
+
+
+
+
+
+
