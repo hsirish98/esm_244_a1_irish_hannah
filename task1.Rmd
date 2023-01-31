@@ -28,7 +28,7 @@ The data contains counts, life stages, and various other characteristics for the
 
 ### Read in data using read_excel
 ```{r warning=FALSE, message=FALSE}
-sierra_amphibians <- read_excel("sierra_amphibians.xlsx")
+sierra_amphibians <- read_excel(here("task1","sierra_amphibians.xlsx"))
 ```
 
 
