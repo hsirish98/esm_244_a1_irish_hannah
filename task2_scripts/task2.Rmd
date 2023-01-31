@@ -26,37 +26,113 @@ sea_samples <- read_csv(here("data_task2", "calcofi_seawater_samples.csv"))
 
 ### Create models for multiple linear regression
 ```{r}
+
 model_1 <- lm(o2sat ~ t_deg_c + salinity + po4u_m, data=sea_samples)
+form1 <- o2sat ~ t_deg_c + salinity + po4u_m
+
 model_2 <- lm(o2sat ~ t_deg_c + salinity + po4u_m + depth_m, data=sea_samples)
+form2 <- o2sat ~ t_deg_c + salinity + po4u_m + depth_m
+
+model_3 <- lm(o2sat ~ t_deg_c + depth_m + salinity, data = sea_samples)
+form3 <- o2sat ~ t_deg_c + depth_m
 ```
 
 ### Calculate AIC and BIC for models
-```{r, output=FALSE}
-AIC_1 <- AICc(model_1)
-AIC_2 <- AICc(model_2)
-
-BIC_1 <- BIC(model_1)
-BIC_2 <- BIC(model_2)
+```{r, warning=FALSE, message=FALSE}
+aictab(list(model_1, model_2, model_3))
+bictab(list(model_1, model_2, model_3))
 
 ```
 
 
 ### Peform ten-fold cross validaation of the two models using root-mean-square error as the scoring method.
 
+
+### Assign sample numbers from 1-# of folds to every row of the dataframe.
 ```{r}
 folds <- 10 ##set # of folds (#-fold validation)
-folds_vector <- rep(1:folds, length_out = nrow(sea_samples)) ##make a vector of 1 to the # of rows you have
 
-set.seed(33) ##to make sure I get the same results each time for debugging
 
-sea_fold <- sea_samples %>%
-  mutate(group = sample(folds_vector, size = n(), replace = FALSE))
+fold_vector <- rep(1:folds, length.out = nrow(sea_samples))##make a vector of 1 to the # of rows you have
+
+set.seed(83) ##to make sure I get the same results each time for debugging
+
+sea_sample_kfold <- sea_samples %>%
+  mutate(fold = sample(fold_vector, size=n(), replace=FALSE))
+
+test_df <- sea_sample_kfold %>% 
+  filter(fold==1)
+
+train_df <- sea_sample_kfold %>% 
+  filter(fold!=1)
+```
+
+### Create function to calculate Root Mean Square Error (rmse) as that will be our scoring method for model selection.
+
+```{r}
+rmse_calc <- function(actual, predicted) {
+  rmse <- (actual - predicted)^2 %>%
+    mean() %>%
+    sqrt() 
+  return(rmse)
+}
 ```
 
 
+### Predict the outcomes using these models and calculate RMSE to compare, 10 times per 10-fold cross validation
 
+```{r}
+rmse_results <- data.frame() ## create a data frame to add these
 
+iterations_n  <- 10
 
+nest_fold_vec <- rep(1:iterations_n,length.out = iterations_n)
+  
+for(j in 1:iterations_n) {
+  
+  set.seed(400)
+  fold_randomized = sample(nest_fold_vec, replace=FALSE)
+  
+for(i in 1:folds) {
+  testing_df <- sea_sample_kfold %>%
+    filter(fold==fold_randomized) 
+  training_df <- sea_sample_kfold %>%
+    filter(fold!=fold_randomized)
+  
+  kfold_mdl1 <- lm(form1, data=training_df)
+  kfold_mdl2 <- lm(form2, data=training_df)
+  kfold_mdl3 <- lm(form3, data=training_df)
+  
+  predictions_df <- testing_df %>%
+    mutate(mdl1 = predict(kfold_mdl1, .),
+           mdl2 = predict(kfold_mdl2, .),
+           mdl3 = predict(kfold_mdl3, .))
+  
+  iterative_rmse <- predictions_df %>%
+    summarize(rmse_m1 = rmse_calc(mdl1, o2sat),
+              rmse_m2 = rmse_calc(mdl2, o2sat),
+              rmse_m3 = rmse_calc(mdl3, o2sat))
+  
+  rmse_results <- bind_rows(rmse_results, iterative_rmse)
+  }
+}
 
+rmse_results %>%
+  summarize(mean_rmse_mdl1 = mean(rmse_m1), mean_rmse_mdl2 = mean(rmse_m2), mean_rmse_mdl3 = mean(rmse_m3))
 
+```
 
+### My results from the AIC. BIC, and from comparing RMSE to find the minimum indicate that model 2 is the *slightly* better model. It minimizes AIC, BIC *and* RMSE. 
+
+**Selected Model**: Model 2: Oxygen Saturation is a function of water temperature, salinity, phosphate concentration, and depth.
+
+### I will now use Model 2 with the entire data set to get the coefficients for my final predictive model.
+
+```{r}
+final_model <- lm(form2, data=sea_samples)
+summary(final_model)
+```
+
+Final model for O2 saturation:
+
+`r equatiomatic::extract_eq(final_model, wrap = TRUE)`
