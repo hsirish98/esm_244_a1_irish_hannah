@@ -13,7 +13,7 @@
 
 <meta name="date" content="2023-01-26" />
 
-<title>Task 2</title>
+<title>California Coast Oxygen Saturation</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -209,6 +209,83 @@ window.buildTabsets = function(tocID) {
 };
 
 </script>
+<script>
+window.initializeCodeFolding = function(show) {
+
+  // handlers for show-all and hide all
+  $("#rmd-show-all-code").click(function() {
+    $('div.r-code-collapse').each(function() {
+      $(this).collapse('show');
+    });
+  });
+  $("#rmd-hide-all-code").click(function() {
+    $('div.r-code-collapse').each(function() {
+      $(this).collapse('hide');
+    });
+  });
+
+  // index for unique code element ids
+  var currentIndex = 1;
+
+  // select all R code blocks
+  var rCodeBlocks = $('pre.r, pre.python, pre.bash, pre.sql, pre.cpp, pre.stan, pre.julia, pre.foldable');
+  rCodeBlocks.each(function() {
+    // skip if the block has fold-none class
+    if ($(this).hasClass('fold-none')) return;
+
+    // create a collapsable div to wrap the code in
+    var div = $('<div class="collapse r-code-collapse"></div>');
+    var showThis = (show || $(this).hasClass('fold-show')) && !$(this).hasClass('fold-hide');
+    var id = 'rcode-643E0F36' + currentIndex++;
+    div.attr('id', id);
+    $(this).before(div);
+    $(this).detach().appendTo(div);
+
+    // add a show code button right above
+    var showCodeText = $('<span>' + (showThis ? 'Hide' : 'Code') + '</span>');
+    var showCodeButton = $('<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm code-folding-btn pull-right float-right"></button>');
+    showCodeButton.append(showCodeText);
+    showCodeButton
+        .attr('data-toggle', 'collapse')
+        .attr('data-bs-toggle', 'collapse') // BS5
+        .attr('data-target', '#' + id)
+        .attr('data-bs-target', '#' + id)   // BS5
+        .attr('aria-expanded', showThis)
+        .attr('aria-controls', id);
+
+    var buttonRow = $('<div class="row"></div>');
+    var buttonCol = $('<div class="col-md-12"></div>');
+
+    buttonCol.append(showCodeButton);
+    buttonRow.append(buttonCol);
+
+    div.before(buttonRow);
+
+    // show the div if necessary
+    if (showThis) div.collapse('show');
+
+    // update state of button on show/hide
+    //   * Change text
+    //   * add a class for intermediate states styling
+    div.on('hide.bs.collapse', function () {
+      showCodeText.text('Code');
+      showCodeButton.addClass('btn-collapsing');
+    });
+    div.on('hidden.bs.collapse', function () {
+      showCodeButton.removeClass('btn-collapsing');
+    });
+    div.on('show.bs.collapse', function () {
+      showCodeText.text('Hide');
+      showCodeButton.addClass('btn-expanding');
+    });
+    div.on('shown.bs.collapse', function () {
+      showCodeButton.removeClass('btn-expanding');
+    });
+
+  });
+
+}
+</script>
 <style type="text/css">.hljs-literal {
 color: #990073;
 }
@@ -338,6 +415,9 @@ display: none;
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
 
 
@@ -354,9 +434,17 @@ display: none;
 
 <div id="header">
 
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
 
 
-<h1 class="title toc-ignore">Task 2</h1>
+
+<h1 class="title toc-ignore">California Coast Oxygen Saturation</h1>
 <h4 class="author">Hannah Irish</h4>
 <h4 class="date">2023-01-26</h4>
 
@@ -368,19 +456,29 @@ library(tidyverse)
 library(here)
 library(janitor)
 library(AICcmodavg)</code></pre>
-<div id="task-2-california-coast-oxygen-saturation" class="section level1">
-<h1><strong>Task 2: California Coast Oxygen Saturation</strong></h1>
+<center>
+<h1>
+<strong>California Coast Oxygen Saturation</strong>
+</h1>
+</center>
+<div id="introduction" class="section level2">
+<h2><strong>Introduction</strong></h2>
 <p>The data in this project is from the California Cooperative Oceanic
 Fisheries Investigations (CalCOFI) 70+ year time series measuring water
 quality factors off the coast of California including salinity,
 temperature, oxygen, phosphate and later silicate, nitritie,
 chlorophyll, etc.</p>
-<div id="read-in-the-data-using-read_csv" class="section level3">
-<h3>Read in the data using read_csv()</h3>
-<pre class="r"><code>sea_samples &lt;- read_csv(here(&quot;data_task2&quot;, &quot;calcofi_seawater_samples.csv&quot;))</code></pre>
 </div>
-<div id="create-models-for-multiple-linear-regression" class="section level3">
-<h3>Create models for multiple linear regression</h3>
+<div id="methods" class="section level2">
+<h2><strong>Methods</strong></h2>
+<p>This code reads in the data using read_csv():</p>
+<pre class="r"><code>sea_samples &lt;- read_csv(here(&quot;data_task2&quot;, &quot;calcofi_seawater_samples.csv&quot;))</code></pre>
+<p>This code creates models for multiple linear regression. Model 1
+models O2 Saturation by temperature in Celcius, salinity, and phosphate
+concentration. Model 2 models O2 saturation by all of those factors as
+well as depth in meters. Model 3 tests whether a simpler model is best,
+modeling O2 saturation by only temperature in Celcius and depth in
+meters:</p>
 <pre class="r"><code>model_1 &lt;- lm(o2sat ~ t_deg_c + salinity + po4u_m, data=sea_samples)
 form1 &lt;- o2sat ~ t_deg_c + salinity + po4u_m
 
@@ -390,78 +488,55 @@ form2 &lt;- o2sat ~ t_deg_c + salinity + po4u_m + depth_m
 model_3 &lt;- lm(o2sat ~ t_deg_c + depth_m + salinity, data = sea_samples)
 form3 &lt;- o2sat ~ t_deg_c + depth_m</code></pre>
 </div>
-<div id="calculate-aic-and-bic-for-models" class="section level3">
-<h3>Calculate AIC and BIC for models</h3>
-<pre class="r"><code>aictab(list(model_1, model_2, model_3))</code></pre>
-<pre><code>## 
-## Model selection based on AICc:
-## 
-##      K   AICc Delta_AICc AICcWt Cum.Wt      LL
-## Mod2 6 616.60       0.00   0.77   0.77 -301.85
-## Mod1 5 619.03       2.42   0.23   1.00 -304.19
-## Mod3 5 736.51     119.91   0.00   1.00 -362.94</code></pre>
-<pre class="r"><code>bictab(list(model_1, model_2, model_3))</code></pre>
-<pre><code>## 
-## Model selection based on BIC:
-## 
-##      K    BIC Delta_BIC BICWt Cum.Wt      LL
-## Mod2 6 631.33      0.00  0.51   0.51 -301.85
-## Mod1 5 631.41      0.08  0.49   1.00 -304.19
-## Mod3 5 748.90    117.57  0.00   1.00 -362.94</code></pre>
-</div>
-<div id="peform-ten-fold-cross-validaation-of-the-two-models-using-root-mean-square-error-as-the-scoring-method." class="section level3">
-<h3>Peform ten-fold cross validaation of the two models using
-root-mean-square error as the scoring method.</h3>
-</div>
-<div id="assign-sample-numbers-from-1--of-folds-to-every-row-of-the-dataframe." class="section level3">
-<h3>Assign sample numbers from 1-# of folds to every row of the
-dataframe.</h3>
-<pre class="r"><code>folds &lt;- 10 ##set # of folds (#-fold validation)
-
-
-fold_vector &lt;- rep(1:folds, length.out = nrow(sea_samples))##make a vector of 1 to the # of rows you have
-
-set.seed(83) ##to make sure I get the same results each time for debugging
-
-sea_sample_kfold &lt;- sea_samples %&gt;%
-  mutate(fold = sample(fold_vector, size=n(), replace=FALSE))
-
-test_df &lt;- sea_sample_kfold %&gt;% 
-  filter(fold==1)
-
-train_df &lt;- sea_sample_kfold %&gt;% 
-  filter(fold!=1)</code></pre>
-</div>
-<div id="create-function-to-calculate-root-mean-square-error-rmse-as-that-will-be-our-scoring-method-for-model-selection." class="section level3">
-<h3>Create function to calculate Root Mean Square Error (rmse) as that
-will be our scoring method for model selection.</h3>
+<div id="model-selection" class="section level2">
+<h2><strong>Model Selection</strong></h2>
+<p>This code calculates AIC and BIC for models to give me an indication
+of which might be better:</p>
+<pre class="r"><code>aictab(list(model_1, model_2, model_3))
+bictab(list(model_1, model_2, model_3))</code></pre>
+<div id="fold-by-10-fold-cross-validation" class="section level3">
+<h3><strong>10-Fold (by 10-Fold) Cross-Validation</strong></h3>
+<p>I investigate even futher and this code creates function to calculate
+Root Mean Square Error (rmse) as that will be our scoring method for
+model selection:</p>
 <pre class="r"><code>rmse_calc &lt;- function(actual, predicted) {
   rmse &lt;- (actual - predicted)^2 %&gt;%
     mean() %&gt;%
     sqrt() 
   return(rmse)
 }</code></pre>
-</div>
-<div id="predict-the-outcomes-using-these-models-and-calculate-rmse-to-compare-10-times-per-10-fold-cross-validation" class="section level3">
-<h3>Predict the outcomes using these models and calculate RMSE to
-compare, 10 times per 10-fold cross validation</h3>
+<p>This code creates a matrix so I can do my nested for loop 10 more
+times cross validation with a different vector every time:</p>
+<pre class="r"><code>iterations_n  &lt;- 10
+
+m_vector &lt;- c(1,2,3,4,5,6,7,8,9,10,2,3,4,5,6,7,8,9,10,1,3,4,5,6,7,8,9,10,1,2,4,5,6,7,8,9,10,1,2,3,5,6,7,8,9,10,1,2,3,4,6,7,8,9,10,1,2,3,4,5,7,8,9,10,1,2,3,4,5,6,8,9,10,1,2,3,4,5,6,7,9,10,1,2,3,4,5,6,7,8,10,1,2,3,4,5,6,7,8,9)
+my_matrix &lt;- matrix(m_vector, nrow=iterations_n, ncol=iterations_n)</code></pre>
+<p>This code chunk calculates RMSE averages for both models by using
+10-fold by 10-fold cross validation to see which model is able to
+predict the data with minimal errors:</p>
 <pre class="r"><code>rmse_results &lt;- data.frame() ## create a data frame to add these
 
 iterations_n  &lt;- 10
+folds &lt;- 10
 
-nest_fold_vec &lt;- rep(1:iterations_n,length.out = iterations_n)
-  
+set.seed(43)
+
 for(j in 1:iterations_n) {
   
-  set.seed(400)
-  fold_randomized = sample(nest_fold_vec, replace=FALSE)
+  iter_vector &lt;- rep(my_matrix[j, ], length.out = nrow(sea_samples)) ##choose a vector (1:10 but in a different order to sample from.
+  
+  sea_sample_kfold &lt;- sea_samples %&gt;%
+  mutate(fold = sample(iter_vector, size=n(), replace=FALSE)) ##set the folds based on chosen vector
+  
+ # print(head(sea_sample_kfold$fold)) ##This is to test that it&#39;s truly giving me a different set every time
   
 for(i in 1:folds) {
-  testing_df &lt;- sea_sample_kfold %&gt;%
-    filter(fold==fold_randomized) 
-  training_df &lt;- sea_sample_kfold %&gt;%
-    filter(fold!=fold_randomized)
   
+  testing_df &lt;- sea_sample_kfold %&gt;%
+    filter(fold==i) 
+  training_df &lt;- sea_sample_kfold %&gt;%
+    filter(fold!=i)
+    
   kfold_mdl1 &lt;- lm(form1, data=training_df)
   kfold_mdl2 &lt;- lm(form2, data=training_df)
   kfold_mdl3 &lt;- lm(form3, data=training_df)
@@ -477,48 +552,64 @@ for(i in 1:folds) {
               rmse_m3 = rmse_calc(mdl3, o2sat))
   
   rmse_results &lt;- bind_rows(rmse_results, iterative_rmse)
-  }
+ }
 }
 
 rmse_results %&gt;%
   summarize(mean_rmse_mdl1 = mean(rmse_m1), mean_rmse_mdl2 = mean(rmse_m2), mean_rmse_mdl3 = mean(rmse_m3))</code></pre>
-<pre><code>##   mean_rmse_mdl1 mean_rmse_mdl2 mean_rmse_mdl3
-## 1       2.897893       2.543299       9.904059</code></pre>
 </div>
-<div id="my-results-from-the-aic.-bic-and-from-comparing-rmse-to-find-the-minimum-indicate-that-model-2-is-the-slightly-better-model.-it-minimizes-aic-bic-and-rmse." class="section level3">
-<h3>My results from the AIC. BIC, and from comparing RMSE to find the
+</div>
+<div id="results" class="section level2">
+<h2><strong>Results</strong></h2>
+<p>My results from the AIC. BIC, and from comparing RMSE to find the
 minimum indicate that model 2 is the <em>slightly</em> better model. It
-minimizes AIC, BIC <em>and</em> RMSE.</h3>
+minimizes AIC, BIC <em>and</em> RMSE, as you can see from the following
+table:</p>
+<pre class="r"><code>Model &lt;- c(&quot;Model 1&quot;, &quot;Model 2&quot;, &quot;Model 3&quot;)
+AIC&lt;-c(round(AIC(model_1),1), round(AIC(model_2),1), round(AIC(model_3),1))
+BIC&lt;-c(round(BIC(model_1),1), round(BIC(model_2),1), round(BIC(model_3),1))
+RMSE&lt;-c(round(mean(rmse_results$rmse_m1),2),round(mean(rmse_results$rmse_m2),2),round(mean(rmse_results$rmse_m3),2))
+
+my_table &lt;- data.frame(Model, AIC, BIC, RMSE)
+
+knitr::kable(my_table)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Model</th>
+<th align="right">AIC</th>
+<th align="right">BIC</th>
+<th align="right">RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Model 1</td>
+<td align="right">618.4</td>
+<td align="right">631.4</td>
+<td align="right">4.82</td>
+</tr>
+<tr class="even">
+<td align="left">Model 2</td>
+<td align="right">615.7</td>
+<td align="right">631.3</td>
+<td align="right">4.78</td>
+</tr>
+<tr class="odd">
+<td align="left">Model 3</td>
+<td align="right">735.9</td>
+<td align="right">748.9</td>
+<td align="right">11.81</td>
+</tr>
+</tbody>
+</table>
+<p>The lowest values (AIC 615.7, BIC 631.3, and mean RMSE 11.81 all
+belong to Model 2</p>
 <p><strong>Selected Model</strong>: Model 2: Oxygen Saturation is a
 function of water temperature, salinity, phosphate concentration, and
 depth.</p>
-</div>
-<div id="i-will-now-use-model-2-with-the-entire-data-set-to-get-the-coefficients-for-my-final-predictive-model." class="section level3">
-<h3>I will now use Model 2 with the entire data set to get the
-coefficients for my final predictive model.</h3>
-<pre class="r"><code>final_model &lt;- lm(form2, data=sea_samples)
-summary(final_model)</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = form2, data = sea_samples)
-## 
-## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -26.3023  -2.2828  -0.2479   2.1771  19.4459 
-## 
-## Coefficients:
-##              Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept) 144.06686   95.36730   1.511   0.1342    
-## t_deg_c      -0.74981    0.40494  -1.852   0.0672 .  
-## salinity     -0.43945    2.98897  -0.147   0.8834    
-## po4u_m      -37.71159    2.50113 -15.078   &lt;2e-16 ***
-## depth_m      -0.03196    0.01497  -2.135   0.0354 *  
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 5.08 on 95 degrees of freedom
-## Multiple R-squared:  0.9574, Adjusted R-squared:  0.9557 
-## F-statistic: 534.3 on 4 and 95 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>This code trains the final model on the entire data set:</p>
+<pre class="r"><code>final_model &lt;- lm(form2, data=sea_samples)</code></pre>
 <p>Final model for O2 saturation:</p>
 <p><span class="math display">\[
 \begin{aligned}
@@ -529,6 +620,10 @@ summary(final_model)</code></pre>
 \end{aligned}
 \]</span></p>
 </div>
+<div id="references" class="section level2">
+<h2><strong>References</strong></h2>
+<p>CalCOFI data are available for use without restriction. Data
+downloaded from <a href="https://calcofi.org/ccdata.html" class="uri">https://calcofi.org/ccdata.html</a>. Accessed 1/10/2022.</p>
 </div>
 
 
@@ -564,6 +659,11 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
